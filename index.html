@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boarding Pass Portraits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Open+Sans:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2F9FD; --panel:#FFFFFF; --panel2:#EAF5FC; --line:#CFE8F6;
+    --text:#0D3B57; --muted:#4F7F99; --accent:#52B5EA; --accent2:#058ECE; --ok:#1E9E6A;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  body{padding:calc(env(safe-area-inset-top) + 12px) 14px calc(env(safe-area-inset-bottom) + 28px)}
+  .app{max-width:520px;margin:0 auto}
+  header{display:flex;align-items:center;gap:10px;margin:4px 0 16px}
+  header .logo{width:36px;height:36px;border-radius:10px;background:var(--accent);display:grid;place-items:center;font-size:20px;color:#fff}
+  header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.2px}
+  header p{margin:0;color:var(--accent2);font-size:17px;font-family:Caveat,cursive;font-weight:700;line-height:1}
+  #jsHint{display:none;text-align:center;color:#D91920;font-weight:600;font-size:13px;margin:0 0 10px}
+  body.nojs #jsHint{display:block}
+  .steps{display:flex;gap:6px;margin-bottom:14px}
+  .steps span{flex:1;height:4px;border-radius:4px;background:var(--line)}
+  .steps span.on{background:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;text-align:center}
+  .btn.primary{background:var(--accent2);color:#fff;border-color:transparent}
+  .btn.ghost{background:transparent}
+  .btn:active{transform:scale(.99)}
+  .btn[disabled]{opacity:.5;pointer-events:none}
+  .row{display:flex;gap:10px}
+  .row .btn{margin-top:10px}
+  label.f{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px;font-weight:600}
+  input[type=text],textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit}
+  input.big{font-size:20px;font-weight:700;padding:14px 12px}
+  textarea{min-height:68px;resize:vertical}
+  .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .seg button{flex:1;padding:9px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:600;font-size:14px;cursor:pointer}
+  .seg button.on{background:var(--panel2);color:var(--text)}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:0 0 auto;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+  .chips button.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  .msgbox{display:flex;gap:8px;align-items:stretch}
+  .msgbox textarea{flex:1}
+  .iconbtn{width:52px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:20px;cursor:pointer}
+  .result img{width:100%;max-width:280px;display:block;margin:0 auto;border-radius:10px;box-shadow:0 10px 30px rgba(5,142,206,.25)}
+  .chip{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;background:var(--panel2);color:var(--muted);margin-left:6px;vertical-align:middle}
+  .small{font-size:12px;color:var(--muted);line-height:1.5}
+  .status{font-size:12.5px;color:#D91920;text-align:center;min-height:16px;margin-top:6px}
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);background:#0D3B57;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1}
+  [hidden]{display:none !important}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body class="nojs">
+<div class="app">
+  <header>
+    <div class="logo">♡</div>
+    <div><h1>Peer Support Boarding Pass</h1><p>crew supporting crew</p></div>
+  </header>
+  <p id="jsHint">If the buttons do nothing, this viewer is blocking the app. Open the link in Safari or Chrome.</p>
+  <div class="steps"><span id="s1" class="on"></span><span id="s2"></span></div>
+
+  <!-- STEP 1 -->
+  <section id="step1" class="card">
+    <h2>1 · Personalise</h2>
+
+    <label class="f">Passenger name</label>
+    <input type="text" id="nameText" class="big" placeholder="e.g. Sara" autocapitalize="words" autocomplete="off">
+
+    <label class="f">Language of the message</label>
+    <div class="seg" id="langSeg"><button data-lang="en" class="on">English</button><button data-lang="ar">العربية</button></div>
+
+    <label class="f">Tone</label>
+    <div class="chips" id="catChips"></div>
+
+    <label class="f">Message <span class="chip" id="msgCount"></span></label>
+    <div class="msgbox"><textarea id="msgText"></textarea><button class="iconbtn" id="shuffleBtn" title="Another message">🎲</button></div>
+
+    <div class="row">
+      <div style="flex:1"><label class="f">From</label><input type="text" id="fromText"></div>
+      <div style="flex:1"><label class="f">To</label><input type="text" id="toText"></div>
+    </div>
+
+
+
+    <div class="status" id="loadStatus"></div>
+    <button class="btn primary" id="renderBtn" style="margin-top:14px">✈️ Generate boarding pass</button>
+    <button class="btn" id="surpriseBtn">🎲 Surprise me (random message)</button>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="step2" class="card result" hidden>
+    <h2>2 · Boarding pass <span class="chip">1080×1920 · phone</span></h2>
+    <img id="outImg" alt="Boarding pass">
+    <button class="btn primary" id="saveBtn">⬇️ Save image to send</button>
+    <p class="small" id="saveHint" style="text-align:center;margin-top:10px"></p>
+    <div class="row">
+      <button class="btn ghost" id="backBtn">✏️ Edit</button>
+      <button class="btn ghost" id="restartBtn">↺ New person</button>
+    </div>
+  </section>
+
+  <p class="small" style="text-align:center">Sized for phone screens (9:16). Send it on WhatsApp or share it as a story.</p>
+</div>
+<div class="toast" id="toast"></div>
+<noscript><p style="text-align:center;color:#f2b84b;font-weight:600">This viewer is not running the app. Open the link in Safari or Chrome instead.</p></noscript>
+
+<script>
+document.body.classList.remove("nojs");
+window.addEventListener("error", e => { const s=document.getElementById("loadStatus"); if(s) s.textContent = "Error: " + (e.message||"unknown"); });
+window.addEventListener("unhandledrejection", e => { const s=document.getElementById("loadStatus"); if(s) s.textContent = "Error: " + (e.reason && e.reason.message || e.reason); });
+
+// ---------- Messages ----------
+const CATS = [
+  {id:"all", label:"All"},
+  {id:"affirm", label:"Affirmation"},
+  {id:"encourage", label:"Encouragement"},
+  {id:"motivate", label:"Motivation"},
+  {id:"reassure", label:"Reassurance"},
+  {id:"reach", label:"Reach out"},
+  {id:"thanks", label:"Thank you"},
+];
+const MESSAGES = [
+  {"cat": "affirm", "en": "You are enough, exactly as you landed today.", "ar": "أنت كافٍ، تمامًا كما وصلت اليوم.", "fromEn": "DOUBT", "toEn": "ENOUGH", "fromAr": "شك", "toAr": "كفاية"},
+  {"cat": "affirm", "en": "Tired is not the same as failing.", "ar": "التعب ليس فشلًا.", "fromEn": "TIRED", "toEn": "HUMAN", "fromAr": "تعب", "toAr": "إنسان"},
+  {"cat": "affirm", "en": "You have made it through every hard day so far. All of them.", "ar": "تجاوزت كل يوم صعب حتى الآن. كلها.", "fromEn": "PAST", "toEn": "PRESENT", "fromAr": "الماضي", "toAr": "الحاضر"},
+  {"cat": "affirm", "en": "You do not have to earn rest.", "ar": "لا تحتاج أن تستحق الراحة.", "fromEn": "EARN", "toEn": "REST", "fromAr": "استحقاق", "toAr": "راحة"},
+  {"cat": "affirm", "en": "Your team is better because you are in it.", "ar": "فريقك أفضل لأنك فيه.", "fromEn": "ONE", "toEn": "TEAM", "fromAr": "واحد", "toAr": "فريق"},
+  {"cat": "affirm", "en": "You are already further than you think.", "ar": "أنت أبعد مما تظن بكثير.", "fromEn": "DOUBT", "toEn": "BELIEF", "fromAr": "شك", "toAr": "يقين"},
+  {"cat": "affirm", "en": "Someone is glad you exist today.", "ar": "هناك من يفرح بوجودك اليوم.", "fromEn": "ALONE", "toEn": "SEEN", "fromAr": "وحدة", "toAr": "اهتمام"},
+  {"cat": "encourage", "en": "Eyes on the next step, not the whole route.", "ar": "ركّز على الخطوة التالية، لا على الطريق كله.", "fromEn": "ALL", "toEn": "NEXT", "fromAr": "الكل", "toAr": "التالي"},
+  {"cat": "encourage", "en": "Tough weeks end. Your character does not.", "ar": "الأسابيع الصعبة تنتهي. شخصيتك لا.", "fromEn": "WEEK", "toEn": "YOU", "fromAr": "أسبوع", "toAr": "أنت"},
+  {"cat": "encourage", "en": "Small progress still clears the runway.", "ar": "التقدم الصغير يفتح المدرج أيضًا.", "fromEn": "STUCK", "toEn": "ROLLING", "fromAr": "عالق", "toAr": "متحرك"},
+  {"cat": "encourage", "en": "You are closer than you were yesterday.", "ar": "أنت أقرب مما كنت بالأمس.", "fromEn": "YESTERDAY", "toEn": "TODAY", "fromAr": "أمس", "toAr": "اليوم"},
+  {"cat": "encourage", "en": "It is okay to go slowly. Just do not stop.", "ar": "لا بأس بالبطء. فقط لا تتوقف.", "fromEn": "PAUSE", "toEn": "GO", "fromAr": "توقف", "toAr": "انطلاق"},
+  {"cat": "encourage", "en": "Show up for yourself the way you show up for others.", "ar": "احضر لنفسك كما تحضر للآخرين.", "fromEn": "OTHERS", "toEn": "YOU", "fromAr": "الآخرون", "toAr": "أنت"},
+  {"cat": "encourage", "en": "Keep going. The view gets better.", "ar": "كمّل، المنظر يحلو مع الارتفاع.", "fromEn": "HERE", "toEn": "THERE", "fromAr": "هنا", "toAr": "هناك"},
+  {"cat": "encourage", "en": "Slow is still forward.", "ar": "البطيء ما زال إلى الأمام.", "fromEn": "STUCK", "toEn": "MOVING", "fromAr": "عالق", "toAr": "يتحرك"},
+  {"cat": "encourage", "en": "Smile. It is in your carry-on.", "ar": "ابتسم، هي في حقيبتك اليدوية.", "fromEn": "GREY", "toEn": "BRIGHT", "fromAr": "رمادي", "toAr": "مشرق"},
+  {"cat": "motivate", "en": "Pack your goals. They fly with you.", "ar": "احزم أهدافك. هي تسافر معك.", "fromEn": "DREAM", "toEn": "PLAN", "fromAr": "حلم", "toAr": "خطة"},
+  {"cat": "motivate", "en": "Discipline is choosing yourself again, after a bad day.", "ar": "الانضباط أن تختار نفسك من جديد بعد يوم سيئ.", "fromEn": "BAD DAY", "toEn": "AGAIN", "fromAr": "يوم سيئ", "toAr": "من جديد"},
+  {"cat": "motivate", "en": "Start before you feel ready. Ready arrives in the air.", "ar": "ابدأ قبل أن تشعر بالجاهزية. الجاهزية تأتي في الجو.", "fromEn": "WAITING", "toEn": "STARTED", "fromAr": "انتظار", "toAr": "بداية"},
+  {"cat": "motivate", "en": "You set the tone of every cabin you walk into.", "ar": "أنت من يحدد أجواء كل مقصورة تدخلها.", "fromEn": "MOOD", "toEn": "LEADER", "fromAr": "مزاج", "toAr": "قائد"},
+  {"cat": "motivate", "en": "Rest is part of the plan, not a break from it.", "ar": "الراحة جزء من الخطة، لا استراحة منها.", "fromEn": "TIRED", "toEn": "BALANCED", "fromAr": "متعب", "toAr": "متوازن"},
+  {"cat": "motivate", "en": "Your next chapter is already boarding.", "ar": "فصلك القادم بدأ الصعود بالفعل.", "fromEn": "NOW", "toEn": "NEXT", "fromAr": "الآن", "toAr": "القادم"},
+  {"cat": "motivate", "en": "Big goals, small suitcase. Carry only what matters.", "ar": "أهداف كبيرة، حقيبة صغيرة. احمل ما يهم فقط.", "fromEn": "CLUTTER", "toEn": "FOCUS", "fromAr": "تشتت", "toAr": "تركيز"},
+  {"cat": "motivate", "en": "Energy follows attention. Point it somewhere good.", "ar": "الطاقة تتبع الانتباه. وجّهه نحو شيء جيد.", "fromEn": "DRIFT", "toEn": "DIRECTION", "fromAr": "انجراف", "toAr": "اتجاه"},
+  {"cat": "motivate", "en": "Do it tired. Do it scared. Just do it kindly.", "ar": "افعلها متعبًا. افعلها خائفًا. لكن افعلها بلطف.", "fromEn": "FEAR", "toEn": "ACTION", "fromAr": "خوف", "toAr": "فعل"},
+  {"cat": "motivate", "en": "Cleared for takeoff. No permission needed.", "ar": "مصرّح لك بالإقلاع. لا تحتاج إذنًا.", "fromEn": "WAITING", "toEn": "GO", "fromAr": "انتظار", "toAr": "انطلاق"},
+  {"cat": "reassure", "en": "This feeling has a departure time too.", "ar": "لهذا الشعور موعد مغادرة أيضًا.", "fromEn": "STORM", "toEn": "PASSING", "fromAr": "عاصفة", "toAr": "عابرة"},
+  {"cat": "reassure", "en": "You are not behind. You are on your own timeline.", "ar": "أنت لست متأخرًا. أنت في وقتك.", "fromEn": "BEHIND", "toEn": "ON TIME", "fromAr": "متأخر", "toAr": "في الموعد"},
+  {"cat": "reassure", "en": "Nobody expects you to carry it alone.", "ar": "لا أحد يتوقع منك أن تحمله وحدك.", "fromEn": "ALONE", "toEn": "TOGETHER", "fromAr": "وحدك", "toAr": "معًا"},
+  {"cat": "reassure", "en": "Homesick is just love with a long commute.", "ar": "الحنين للوطن حب يقطع مسافة طويلة.", "fromEn": "FAR", "toEn": "LOVED", "fromAr": "بعيد", "toAr": "محبوب"},
+  {"cat": "reassure", "en": "Your crew has your back, even on the ground.", "ar": "طاقمك يسندك، حتى على الأرض.", "fromEn": "ALONE", "toEn": "COVERED", "fromAr": "وحدك", "toAr": "مسنود"},
+  {"cat": "reassure", "en": "Today counts, even the quiet parts.", "ar": "اليوم يُحسب، حتى لحظاته الهادئة.", "fromEn": "RUSH", "toEn": "PRESENCE", "fromAr": "عجلة", "toAr": "حضور"},
+  {"cat": "reassure", "en": "This chapter is not the whole story.", "ar": "هذا الفصل ليس القصة كلها.", "fromEn": "NOW", "toEn": "NEXT", "fromAr": "الآن", "toAr": "القادم"},
+  {"cat": "reassure", "en": "Breathe. You are exactly on time.", "ar": "تنفّس. أنت في موعدك تمامًا.", "fromEn": "LATE", "toEn": "ON TIME", "fromAr": "متأخر", "toAr": "في الموعد"},
+  {"cat": "reassure", "en": "Land softly. You deserve a gentle arrival.", "ar": "اهبط برفق، تستحق وصولًا هادئًا.", "fromEn": "HARD", "toEn": "SOFT", "fromAr": "قاسٍ", "toAr": "رقيق"},
+  {"cat": "reach", "en": "Asking for help is a safety procedure, not a weakness.", "ar": "طلب المساعدة إجراء سلامة، لا ضعف.", "fromEn": "SILENCE", "toEn": "SUPPORT", "fromAr": "صمت", "toAr": "دعم"},
+  {"cat": "reach", "en": "Someone who will listen to you is one message away.", "ar": "هناك من سيستمع إليك، على بُعد رسالة واحدة.", "fromEn": "STUCK", "toEn": "HEARD", "fromAr": "عالق", "toAr": "مسموع"},
+  {"cat": "reach", "en": "When oxygen is needed, put your own mask on first, then help others.", "ar": "عند الحاجة للأكسجين، ضع قناعك أولًا، ثم ساعد الآخرين.", "fromEn": "EVERYONE", "toEn": "YOU", "fromAr": "الجميع", "toAr": "أنت"},
+  {"cat": "reach", "en": "You would never let a colleague struggle alone. Same rule applies to you.", "ar": "لن تترك زميلًا يواجه الصعاب وحده. القاعدة نفسها تنطبق عليك.", "fromEn": "THEM", "toEn": "YOU", "fromAr": "هم", "toAr": "أنت"},
+  {"cat": "reach", "en": "Reach out today. Not when it gets worse.", "ar": "تواصل اليوم. لا عندما يسوء الأمر.", "fromEn": "LATER", "toEn": "NOW", "fromAr": "لاحقًا", "toAr": "الآن"},
+  {"cat": "reach", "en": "Crew supporting crew is not a slogan. It is an open door.", "ar": "طاقم يدعم طاقمًا ليست شعارًا. إنها باب مفتوح.", "fromEn": "CLOSED", "toEn": "OPEN", "fromAr": "مغلق", "toAr": "مفتوح"},
+  {"cat": "thanks", "en": "Thank you for the way you show up.", "ar": "شكرًا لطريقتك في الحضور.", "fromEn": "UNSEEN", "toEn": "NOTICED", "fromAr": "غير مرئي", "toAr": "ملحوظ"},
+  {"cat": "thanks", "en": "Someone noticed what you did today.", "ar": "أحدهم لاحظ ما فعلته اليوم.", "fromEn": "QUIET", "toEn": "SEEN", "fromAr": "هدوء", "toAr": "مرئي"},
+  {"cat": "thanks", "en": "Proud to fly with you.", "ar": "فخور بالطيران معك.", "fromEn": "CREW", "toEn": "FAMILY", "fromAr": "طاقم", "toAr": "عائلة"},
+  {"cat": "thanks", "en": "Rest well. You earned every minute of it.", "ar": "ارتح جيدًا. استحققت كل دقيقة.", "fromEn": "DUTY", "toEn": "REST", "fromAr": "واجب", "toAr": "راحة"},
+  {"cat": "thanks", "en": "Your kindness has a long range.", "ar": "لطفك يصل بعيدًا.", "fromEn": "HERE", "toEn": "EVERYWHERE", "fromAr": "هنا", "toAr": "كل مكان"},
+  {"cat": "thanks", "en": "Nobody does it like you. Keep doing it.", "ar": "لا أحد يفعلها مثلك. استمر.", "fromEn": "ORDINARY", "toEn": "ONLY YOU", "fromAr": "عادي", "toAr": "أنت فقط"},
+  {"cat": "thanks", "en": "We are proud of you. Yes, you.", "ar": "نحن فخورون بك. نعم، أنت.", "fromEn": "UNSEEN", "toEn": "CELEBRATED", "fromAr": "غير مرئي", "toAr": "محتفى به"},
+];
+const BRAND = { blue:"#52B5EA", deep:"#058ECE", tint:"#A7D8F4", red:"#D91920", ink:"#0D3B57", white:"#FFFFFF" };
+
+// ---------- State ----------
+const $ = id => document.getElementById(id);
+const state = { lang:"en", cat:"all", msgIdx:0, outCanvas:null, flight:null };
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("show"),2200); }
+function setStep(n){ ["step1","step2"].forEach((s,i)=>$(s).hidden = (i+1)!==n); [1,2].forEach(i=>$("s"+i).classList.toggle("on", i<=n)); window.scrollTo({top:0,behavior:"smooth"}); }
+
+// ---------- Message controls ----------
+function pool(){ return MESSAGES.map((m,i)=>({m,i})).filter(x=>state.cat==="all" || x.m.cat===state.cat); }
+function applyMessage(i){
+  state.msgIdx = i; const m = MESSAGES[i]; const ar = state.lang==="ar";
+  $("msgText").value = ar? m.ar : m.en; $("fromText").value = ar? m.fromAr : m.fromEn; $("toText").value = ar? m.toAr : m.toEn;
+  $("msgText").dir = ar? "rtl":"ltr"; $("fromText").dir = $("toText").dir = ar? "rtl":"ltr";
+  const p = pool(); const pos = p.findIndex(x=>x.i===i);
+  $("msgCount").textContent = `${pos+1}/${p.length}`;
+}
+function randomFromPool(exclude){ const p = pool().filter(x=>x.i!==exclude); return (p.length? p : pool())[Math.floor(Math.random()*(p.length||1))].i; }
+$("shuffleBtn").addEventListener("click", ()=> applyMessage(randomFromPool(state.msgIdx)));
+$("langSeg").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; state.lang=b.dataset.lang; [...$("langSeg").children].forEach(x=>x.classList.toggle("on",x===b)); applyMessage(state.msgIdx); });
+const chips = $("catChips");
+CATS.forEach(c=>{ const b=document.createElement("button"); b.textContent=c.label; b.dataset.cat=c.id; if(c.id===state.cat) b.classList.add("on"); chips.appendChild(b); });
+chips.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; state.cat=b.dataset.cat; [...chips.children].forEach(x=>x.classList.toggle("on",x===b)); applyMessage(randomFromPool(-1)); });
+applyMessage(randomFromPool(-1));
+
+// ---------- Drawing helpers ----------
+function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function wrap(ctx,text,maxW){
+  const words = text.trim().split(/\s+/), lines=[]; let line="";
+  for(const w of words){ const t = line? line+" "+w : w; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w; } else line=t; }
+  if(line) lines.push(line); return lines;
+}
+function spaced(ctx,text,x,y,sp,align="left"){
+  if("letterSpacing" in ctx){ ctx.letterSpacing = sp+"px"; ctx.textAlign=align; ctx.fillText(text,x,y); ctx.letterSpacing="0px"; return; }
+  const chars=[...text]; let total = chars.reduce((a,ch)=>a+ctx.measureText(ch).width,0)+sp*(chars.length-1);
+  let cx = align==="right"? x-total : align==="center"? x-total/2 : x; ctx.textAlign="left";
+  for(const ch of chars){ ctx.fillText(ch,cx,y); cx += ctx.measureText(ch).width+sp; }
+}
+function fitFont(ctx, text, maxW, maxSize, minSize, build){
+  let s=maxSize; do{ ctx.font = build(s); if(ctx.measureText(text).width<=maxW) break; s-=2; }while(s>minSize); return s;
+}
+function newFlight(){
+  const pick = a => a[Math.floor(Math.random()*a.length)];
+  const cabins = [
+    {name:"FIRST CLASS",     rows:[1,4],   letters:"AEFK"},
+    {name:"BUSINESS",        rows:[6,20],  letters:"ADGK"},
+    {name:"PREMIUM ECONOMY", rows:[21,28], letters:"ACDEFGHK"},
+    {name:"ECONOMY",         rows:[29,60], letters:"ABCDEFGHJK"},
+  ];
+  const cab = pick(cabins);
+  const row = cab.rows[0] + Math.floor(Math.random()*(cab.rows[1]-cab.rows[0]+1));
+  const gate = pick("ABCD") + (1+Math.floor(Math.random()*30));
+  const num = "PS " + String(100+Math.floor(Math.random()*900));
+  const bars = Array.from({length:90},()=>Math.random());
+  return { seat: row+pick(cab.letters), gate, num, cls: cab.name, bars };
+}
+
+// ---------- The pass card (600×720 units, scaled) ----------
+const SANS = "'Open Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
+const SCRIPT = "Caveat, 'Bradley Hand', 'Segoe Script', cursive";
+const MONO = "ui-monospace, Menlo, Consolas, 'Courier New', monospace";
+
+// hand-drawn open heart: a single loose stroke, left lobe starts open
+function heart(ctx, x, y, s, color, width, alpha=1){
+  ctx.save(); ctx.translate(x,y); ctx.scale(s,s); ctx.globalAlpha=alpha;
+  ctx.strokeStyle=color; ctx.lineWidth=width/s; ctx.lineCap="round"; ctx.lineJoin="round";
+  ctx.beginPath();
+  ctx.moveTo(-0.62,-0.18);
+  ctx.bezierCurveTo(-0.95,-0.62,-0.42,-0.98,-0.05,-0.52);
+  ctx.bezierCurveTo(0.30,-1.02,0.98,-0.60,0.62,-0.10);
+  ctx.bezierCurveTo(0.40,0.22,0.08,0.52,-0.02,0.78);
+  ctx.bezierCurveTo(-0.18,0.46,-0.38,0.26,-0.55,0.08);
+  ctx.stroke(); ctx.restore();
+}
+
+function renderCard(){
+  const B = BRAND; const k=1.6, W=600, H=720;
+  const c = document.createElement("canvas"); c.width=W*k; c.height=H*k; const ctx=c.getContext("2d"); ctx.scale(k,k);
+  const ar = state.lang==="ar";
+  const msg = $("msgText").value.trim() || (ar? MESSAGES[state.msgIdx].ar : MESSAGES[state.msgIdx].en);
+  const from = $("fromText").value.trim().toUpperCase(), to = $("toText").value.trim().toUpperCase();
+  const name = $("nameText").value.trim().toUpperCase();
+  const F = state.flight || (state.flight = newFlight());
+
+  rr(ctx,0,0,W,H,24); ctx.save(); ctx.clip();
+  ctx.fillStyle = B.white; ctx.fillRect(0,0,W,H);
+
+  // header band: brand blue with a lighter swoosh, like the card
+  ctx.fillStyle = B.blue; ctx.fillRect(0,0,W,118);
+  ctx.save(); ctx.beginPath(); ctx.moveTo(W,0); ctx.lineTo(W,118); ctx.lineTo(300,118); ctx.bezierCurveTo(420,118,470,60,520,0); ctx.closePath(); ctx.fillStyle=B.tint; ctx.globalAlpha=.55; ctx.fill(); ctx.restore();
+  ctx.fillStyle = B.white; ctx.textBaseline="middle"; ctx.textAlign="left";
+  ctx.font = `800 28px ${SANS}`; ctx.fillText("PEER SUPPORT", 34, 44);
+  ctx.font = `700 24px ${SCRIPT}`; ctx.fillText("crew supporting crew", 36, 80);
+  heart(ctx, W-62, 48, 30, B.white, 4);
+  ctx.font = `600 10px ${SANS}`; ctx.fillStyle=B.white; spaced(ctx, "BOARDING PASS", W-34, 98, 3, "right");
+
+  // passenger name: the hero
+  ctx.fillStyle = B.deep; ctx.globalAlpha=.7; ctx.font = `600 11px ${SANS}`; spaced(ctx, "PASSENGER", W/2, 158, 3, "center"); ctx.globalAlpha=1;
+  ctx.textAlign="center"; ctx.fillStyle = B.deep;
+  fitFont(ctx, name, W-80, 46, 22, s=>`800 ${s}px ${SANS}`);
+  ctx.fillText(name, W/2, 196);
+  ctx.strokeStyle = B.red; ctx.lineWidth=3; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(W/2-26,230); ctx.lineTo(W/2+26,230); ctx.stroke();
+
+  // message
+  ctx.fillStyle = B.ink; ctx.textAlign="center"; ctx.direction = ar? "rtl":"ltr";
+  let size = ar? 36 : 40, lines;
+  do { ctx.font = ar ? `700 ${size}px ${SANS}` : `700 ${size}px ${SCRIPT}`; lines = wrap(ctx, msg, W-100); size -= 2; } while(lines.length>4 && size>20);
+  const lh = (size+2)*1.18, blockH = lines.length*lh; let y = 258 + (150-blockH)/2 + lh/2;
+  lines.forEach(l=>{ ctx.fillText(l, W/2, y); y+=lh; });
+  ctx.direction="ltr";
+
+  // route graphic
+  const rx1=110, rx2=490, ry=486;
+  ctx.save(); ctx.strokeStyle = B.blue; ctx.lineWidth=2.5; ctx.setLineDash([3,8]); ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(rx1,ry); ctx.quadraticCurveTo(W/2, ry-95, rx2, ry); ctx.stroke(); ctx.restore();
+  ctx.fillStyle = B.blue; [rx1,rx2].forEach(x=>{ ctx.beginPath(); ctx.arc(x,ry,5.5,0,Math.PI*2); ctx.fill(); });
+  ctx.save(); ctx.translate(W/2, ry-48); if(ar) ctx.scale(-1,1); ctx.fillStyle = B.deep; ctx.font = `30px ${SANS}`; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("✈",0,0); ctx.restore();
+  const L = ar ? to : from, R = ar ? from : to;
+  ctx.fillStyle = B.deep; ctx.textAlign="center"; ctx.direction = ar? "rtl":"ltr";
+  ctx.font = `800 17px ${SANS}`; ctx.fillText(L, rx1, ry+26); ctx.fillText(R, rx2, ry+26);
+  ctx.direction="ltr"; ctx.globalAlpha=.6; ctx.font = `600 9px ${SANS}`;
+  spaced(ctx, ar?"TO":"FROM", rx1, ry+45, 2, "center"); spaced(ctx, ar?"FROM":"TO", rx2, ry+45, 2, "center"); ctx.globalAlpha=1;
+
+  // rule + fields
+  ctx.strokeStyle = "rgba(82,181,234,.35)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(40,556); ctx.lineTo(W-40,556); ctx.stroke();
+  const date = "12 NOV 2026";
+  const fields = [["FLIGHT",F.num,1],["SEAT",F.seat,.8],["GATE",F.gate,.8],["CLASS",F.cls,1.6]];
+  const total = fields.reduce((a,f)=>a+f[2],0); let fx = 40;
+  fields.forEach(([kk,v,wt])=>{ const fw = (W-80)*wt/total, x = fx + fw/2; fx += fw;
+    ctx.fillStyle = B.deep; ctx.globalAlpha=.6; ctx.font = `600 10px ${SANS}`; spaced(ctx,kk,x,578,1.5,"center");
+    ctx.globalAlpha=1; ctx.fillStyle = B.ink; fitFont(ctx, v, fw-10, 20, 13, s=>`800 ${s}px ${SANS}`); ctx.textAlign="center"; ctx.fillText(v,x,602); });
+
+  // perforation + stub
+  const perfY = 634;
+  ctx.strokeStyle="rgba(82,181,234,.8)"; ctx.setLineDash([6,6]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(22,perfY); ctx.lineTo(W-22,perfY); ctx.stroke(); ctx.setLineDash([]);
+  let bx = 40; ctx.fillStyle = B.deep;
+  F.bars.forEach((v,i)=>{ const w = v<.3?1.5:v<.7?2.5:4; if(i%3!==0) ctx.fillRect(bx,654,w,30); bx += w+1.6; });
+  ctx.font = `600 10px ${MONO}`; ctx.textAlign="right"; ctx.fillStyle=B.deep; ctx.globalAlpha=.7; spaced(ctx, date, W-40, 662, 1.5, "right"); spaced(ctx, "VALID FOREVER", W-40, 678, 1.5, "right"); ctx.globalAlpha=1;
+  ctx.restore();
+
+  ctx.save(); ctx.globalCompositeOperation="destination-out"; ctx.beginPath(); ctx.arc(0,perfY,14,0,Math.PI*2); ctx.arc(W,perfY,14,0,Math.PI*2); ctx.fill(); ctx.restore();
+  return c;
+}
+function renderPass(){
+  const B = BRAND, W=1080, H=1920;
+  const c = document.createElement("canvas"); c.width=W; c.height=H; const ctx=c.getContext("2d");
+  // brand blue field with layered lighter swooshes and a thin red one
+  ctx.fillStyle = B.blue; ctx.fillRect(0,0,W,H);
+  ctx.save(); ctx.globalAlpha=.45; ctx.fillStyle=B.tint; ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(0,1150); ctx.bezierCurveTo(350,1250,750,1500,W,1250); ctx.lineTo(W,H); ctx.closePath(); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.globalAlpha=.35; ctx.fillStyle=B.white; ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(0,1420); ctx.bezierCurveTo(400,1520,800,1700,W,1480); ctx.lineTo(W,H); ctx.closePath(); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.strokeStyle=B.red; ctx.lineWidth=7; ctx.lineCap="round"; ctx.globalAlpha=.9; ctx.beginPath(); ctx.moveTo(-20,1180); ctx.bezierCurveTo(330,1270,760,1540,W+20,1290); ctx.stroke(); ctx.restore();
+  // big faint hand-drawn heart behind the card
+  heart(ctx, 300, 330, 380, B.white, 26, .22);
+  heart(ctx, W-110, 1640, 90, B.white, 10, .9);
+  // card with shadow
+  const card = renderCard(); const cx = (W-card.width)/2, cy = (H-card.height)/2 - 20;
+  ctx.save(); ctx.shadowColor="rgba(5,80,130,.35)"; ctx.shadowBlur=60; ctx.shadowOffsetY=24; ctx.drawImage(card,cx,cy); ctx.restore();
+  // footer line in script
+  ctx.fillStyle=B.white; ctx.font=`700 44px ${SCRIPT}`; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("crew supporting crew", W/2, cy+card.height+80);
+  return c;
+}
+
+async function generate(){
+  if(!$("nameText").value.trim()){ toast("Add the passenger's name"); $("nameText").focus(); return; }
+  try{ await Promise.race([Promise.all([document.fonts.load("700 40px Caveat"), document.fonts.load("800 40px 'Open Sans'"), document.fonts.load("600 40px 'Open Sans'")]), new Promise(r=>setTimeout(r,2500))]); }catch(e){}
+  state.flight = newFlight();
+  state.outCanvas = renderPass();
+  $("outImg").src = state.outCanvas.toDataURL("image/jpeg",0.92);
+  setStep(2);
+}
+$("renderBtn").addEventListener("click", generate);
+$("surpriseBtn").addEventListener("click", ()=>{ applyMessage(randomFromPool(state.msgIdx)); generate(); });
+$("backBtn").addEventListener("click", ()=>setStep(1));
+$("restartBtn").addEventListener("click", ()=>{ $("nameText").value=""; applyMessage(randomFromPool(state.msgIdx)); setStep(1); $("nameText").focus(); });
+
+// ---------- Saving ----------
+let downloads = null;
+(async()=>{ try{ if(window.claude && claude.use) downloads = await claude.use("downloads"); }catch(e){ downloads=null; }
+  $("saveHint").textContent = (downloads || !window.claude) ? "" : "Saving is not available in this view. Long-press the image to save it to your photos."; })();
+const blobOf = cv => new Promise(r=>cv.toBlob(r,"image/jpeg",0.92));
+async function save(canvas, filename, btn){
+  const blob = await blobOf(canvas);
+  if(downloads){
+    const old = btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span>Preparing…';
+    try{ await downloads.save({filename, data:blob}); toast("Saved ✓"); }
+    catch(e){ if(e && e.code==="declined") toast("Save cancelled"); else toast("Could not save: "+(e&&e.message||"unknown")); }
+    btn.disabled=false; btn.textContent=old; return;
+  }
+  if(!window.claude){
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast("Saved ✓"); return;
+  }
+  toast("Long-press the image to save it");
+}
+$("saveBtn").addEventListener("click", e=>{ if(state.outCanvas) save(state.outCanvas, "boarding-pass-"+($("nameText").value.trim().toLowerCase().replace(/\s+/g,"-")||"pass")+".jpg", e.currentTarget); });
+</script>
+</body>
+</html>
